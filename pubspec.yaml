@@ -1,0 +1,33 @@
+name: camara_y_galeria
+description: "Galería rápida — demo universitaria de cámara, galería y permisos (SS603)."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.12.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Íconos de estilo iOS (Material ya trae los suyos).
+  cupertino_icons: ^1.0.8
+
+  # Cámara/galería en Android e iOS, y galería en Web (selector de archivos).
+  image_picker: ^1.2.4
+
+  # Consulta y solicita permisos en tiempo de ejecución (Android e iOS).
+  # En Web no se usa para la cámara: el navegador gestiona getUserMedia.
+  permission_handler: ^13.0.2
+
+  # Solo para la demo de cámara en Web: dispara el permiso del navegador
+  # (getUserMedia vía camera_web). En móvil seguimos con image_picker.
+  camera: ^0.12.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
