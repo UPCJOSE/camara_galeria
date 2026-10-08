@@ -74,12 +74,12 @@ class ServicioPermisos {
 
   /// Flujo de permiso de GALERÍA / fotos.
   ///
-  /// - iOS: usamos [Permission.photos].
-  /// - Android 13+ (API 33+): image_picker usa el Photo Picker del sistema
-  ///   y normalmente NO requiere permiso de lectura. Por eso en Android
-  ///   moderno podemos continuar sin bloquear por Permission.photos.
-  /// - Android 12 o inferior: a veces hace falta almacenamiento; image_picker
-  ///   suele gestionar el acceso. Pedimos photos/storage solo si aplica.
+  /// - iOS y Android: usamos [Permission.photos] (o el equivalente del SO).
+  /// - Si el usuario niega o cancela, NO abrimos la galería: respetamos
+  ///   su decisión (importante para la demo de aceptar / negar).
+  /// - Nota: en Android 13+ el Photo Picker de image_picker podría abrir
+  ///   sin este permiso, pero nosotros pedimos permiso primero a propósito
+  ///   para mostrar el diálogo y el caso "denegado".
   Future<RespuestaPermiso> asegurarGaleria() async {
     if (kIsWeb) {
       return const RespuestaPermiso(
@@ -91,27 +91,16 @@ class ServicioPermisos {
     }
 
     try {
-      // En Android, Permission.photos puede no ser el mismo flujo que iOS.
-      // Si ya está concedido o limitado, seguimos.
+      // 1) Consultar estado actual.
       var estado = await Permission.photos.status;
 
+      // 2) Si aún no está concedido, pedirlo (aquí sale el diálogo).
       if (!estado.isGranted && !estado.isLimited) {
         estado = await Permission.photos.request();
       }
 
-      // Si el SO no aplica el permiso (p. ej. Photo Picker en Android 13+),
-      // permission_handler a veces reporta denegado aunque el picker funcione.
-      // En ese caso dejamos continuar y image_picker abrirá el selector.
-      if (defaultTargetPlatform == TargetPlatform.android &&
-          (estado.isDenied || estado.isPermanentlyDenied)) {
-        return const RespuestaPermiso(
-          resultado: ResultadoPermiso.concedido,
-          mensaje:
-              'Android: con image_picker (Photo Picker en API 33+) '
-              'suele no hacer falta permiso. Continuamos a la galería.',
-        );
-      }
-
+      // 3) Mapear el resultado. Si negaron/cancelaron, puedeContinuar = false
+      //    y la UI no llama a image_picker.
       return _mapear(estado, recurso: 'fotos / galería');
     } catch (e) {
       return RespuestaPermiso(
